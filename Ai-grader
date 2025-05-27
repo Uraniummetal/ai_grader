@@ -1,0 +1,30 @@
+import streamlit as st from sentence_transformers import SentenceTransformer, util
+
+Load the sentence transformer model
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+st.set_page_config(page_title="AI Answer Grader", layout="centered") st.title("AI Grader for Short Answers") st.write("Enter a model answer and the student's response to get an AI-generated score and feedback.")
+
+Input fields
+
+model_answer = st.text_area("Model Answer", height=100) student_answer = st.text_area("Student Answer", height=100)
+
+if st.button("Grade Answer"): if not model_answer.strip() or not student_answer.strip(): st.warning("Please fill in both fields before grading.") else: # Encode the answers emb1 = model.encode(student_answer, convert_to_tensor=True) emb2 = model.encode(model_answer, convert_to_tensor=True)
+
+# Compute similarity and score
+    score = util.cos_sim(emb1, emb2).item()
+    score_out_of_10 = round(score * 10, 2)
+
+    st.success(f"Score: {score_out_of_10} / 10")
+
+    # Feedback
+    if score_out_of_10 > 8:
+        feedback = "Excellent answer! You've explained the concept well."
+    elif score_out_of_10 > 5:
+        feedback = "Good attempt. Try to include more key terms from the model answer."
+    else:
+        feedback = "Needs improvement. Re-read the concept and try again."
+
+    st.info(f"Feedback: {feedback}")
+
